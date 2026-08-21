@@ -2,45 +2,63 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>天气获取测试</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Weather API Test</title>
 <style>
-body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;background:#f2f5f9;margin:0;padding:20px;color:#222}
-.card{background:#fff;padding:20px;border-radius:18px;margin-bottom:16px}
-button{width:100%;padding:15px;border:0;border-radius:12px;background:#1677ff;color:white;font-size:18px}
-.weather{font-size:18px;line-height:1.8}
-pre{white-space:pre-wrap;word-break:break-all;background:#111;color:#eee;padding:15px;border-radius:12px;font-size:13px}
-.small{color:#666;font-size:14px}
+body{margin:0;padding:18px;background:#eef3f8;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;color:#222}
+.card{background:#fff;border-radius:20px;padding:20px;margin-bottom:16px;box-shadow:0 5px 20px #0001}
+h2{margin-top:0}
+button{width:100%;height:52px;border:0;border-radius:14px;background:#1677ff;color:#fff;font-size:18px}
+.info{line-height:1.8;font-size:16px}
+pre{background:#111;color:#eee;padding:15px;border-radius:14px;white-space:pre-wrap;word-break:break-all;font-size:13px;min-height:100px}
+.status{font-weight:bold}
 </style>
 </head>
 <body>
 <div class="card">
-<h2>天气接口测试</h2>
-<div class="small">手机打开页面后，点击按钮获取位置并测试天气接口。</div>
-<br>
-<button id="location">获取位置并更新天气</button>
+<h2>天气获取测试</h2>
+<p>基础测试：获取手机位置 → 请求中国天气接口 → 显示原始返回。</p>
+<button id="btn">获取位置并更新天气</button>
 </div>
-<div class="card weather" id="weather">等待操作</div>
+<div class="card info" id="info">等待操作</div>
 <div class="card">
-<h3>接口返回</h3>
-<pre id="raw">等待接口返回...</pre>
+<h3>接口响应</h3>
+<pre id="result">等待数据...</pre>
 </div>
 <script>
-const weather=document.getElementById('weather');
-const raw=document.getElementById('raw');
+const info=document.getElementById('info');
+const result=document.getElementById('result');
 
-document.getElementById('location').onclick=()=>{
- navigator.geolocation.getCurrentPosition(async p=>{
-  const lat=p.coords.latitude.toFixed(5);
-  const lon=p.coords.longitude.toFixed(5);
-  weather.textContent='位置 '+lat+','+lon+' 正在请求...';
-  try{
-   const r=await fetch('https://api.weathercn.com');
-   const t=await r.text();
-   weather.textContent='HTTP '+r.status;
-   raw.textContent=t.slice(0,5000);
-  }catch(e){raw.textContent='请求失败: '+e.message;}
- },e=>weather.textContent='定位失败: '+e.message);
+function showLocation(position){
+ const lat=position.coords.latitude;
+ const lon=position.coords.longitude;
+ info.innerHTML='位置：<br>'+lat+'<br>'+lon+'<br><span class="status">正在请求天气接口...</span>';
+ requestWeather(lat,lon);
+}
+
+async function requestWeather(lat,lon){
+ try{
+  const url='https://api.weathercn.com';
+  const response=await fetch(url,{method:'GET'});
+  const text=await response.text();
+  info.innerHTML+=' <br>HTTP状态：'+response.status;
+  result.textContent=text || '(空响应)';
+ }catch(error){
+  info.innerHTML+=' <br>请求失败';
+  result.textContent=error.toString();
+ }
+}
+
+document.getElementById('btn').onclick=()=>{
+ result.textContent='';
+ if(!navigator.geolocation){
+  info.textContent='当前浏览器不支持定位';
+  return;
+ }
+ info.textContent='正在获取GPS位置...';
+ navigator.geolocation.getCurrentPosition(showLocation,error=>{
+  info.textContent='定位失败：'+error.message;
+ },{enableHighAccuracy:true,timeout:10000});
 };
 </script>
 </body>
