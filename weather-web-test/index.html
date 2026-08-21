@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Weather API Web Test</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:24px;background:#f5f7fb;color:#222}
+.card{background:white;border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 4px 16px #0001}
+input,button{font-size:16px;padding:10px;border-radius:8px;border:1px solid #ccc}
+button{cursor:pointer}
+pre{white-space:pre-wrap;word-break:break-all;background:#111;color:#eee;padding:16px;border-radius:12px}
+</style>
+</head>
+<body>
+<div class="card">
+<h2>中国天气接口获取测试</h2>
+<p>基于 HAR 分析确认的数据结构进行网页直连测试。</p>
+<label>接口地址：</label><br>
+<input id="url" style="width:90%" value="https://api.weathercn.com">
+<br><br>
+<button id="test">开始测试</button>
+</div>
+<div class="card">
+<h3>结果</h3>
+<pre id="result">等待请求...</pre>
+</div>
+<script>
+const result=document.getElementById('result');
+document.getElementById('test').onclick=async()=>{
+ const base=document.getElementById('url').value.trim();
+ result.textContent='请求中...';
+ try{
+   const r=await fetch(base,{method:'GET'});
+   const text=await r.text();
+   result.textContent=[
+    'HTTP '+r.status,
+    'Content-Type: '+r.headers.get('content-type'),
+    '',
+    text.slice(0,4000)
+   ].join('\n');
+ }catch(e){
+   result.textContent='FAIL\n'+e.message+'\n\n如果浏览器阻止跨域，请使用本地代理或在 App 内由 URLSession 测试。';
+ }
+};
+</script>
+</body>
+</html>
